@@ -33,9 +33,15 @@
 
 typedef uint64_t (*crcfn64)(uint64_t, void *, uint64_t);
 
-void crcspeed_init64(crcfn64 fn, uint64_t table[8][256]);
+void crcspeed64little_init(crcfn64 fn, uint64_t table[8][256]);
+void crcspeed64big_init(crcfn64 fn, uint64_t table[8][256]);
+void crcspeed64native_init(crcfn64 fn, uint64_t table[8][256]);
 
-uint64_t crcspeed64(uint64_t table[8][256], uint64_t crc, void *buf,
-                    size_t len);
+uint64_t crcspeed64little(uint64_t table[8][256], uint64_t crc, void *buf,
+                          size_t len);
+uint64_t crcspeed64big(uint64_t table[8][256], uint64_t crc, void *buf,
+                       size_t len);
+uint64_t crcspeed64native(uint64_t table[8][256], uint64_t crc, void *buf,
+                          size_t len);
 
 #endif

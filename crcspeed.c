@@ -30,16 +30,15 @@
 #include "crcspeed.h"
 
 /* Fill in a CRC constants table. */
-static void crc_init64(crcfn64 crcfn, uint64_t table[8][256]) {
+void crcspeed64little_init(crcfn64 crcfn, uint64_t table[8][256]) {
     uint64_t crc;
 
-    /* generate CRC's for all single byte sequences */
+    /* generate CRCs for all single byte sequences */
     for (int n = 0; n < 256; n++) {
-        crc = n;
-        table[0][n] = crcfn(0, &crc, 1);
+        table[0][n] = crcfn(0, &n, 1);
     }
 
-    /* generate CRC's for those followed by 1 to 7 zero bytes */
+    /* generate CRCs for those followed by 1 to 7 zero bytes */
     for (int n = 0; n < 256; n++) {
         crc = table[0][n];
         for (int k = 1; k < 8; k++) {
@@ -62,8 +61,9 @@ static inline uint64_t rev8(uint64_t a) {
 
 /* This function is called once to initialize the CRC table for use on a
    big-endian architecture. */
-static void big_init64(crcfn64 fn, uint64_t big_table[8][256]) {
-    crc_init64(fn, big_table);
+void crcspeed64big_init(crcfn64 fn, uint64_t big_table[8][256]) {
+    /* Create the little endian table then reverse all the entires. */
+    crcspeed64little_init(fn, big_table);
     for (int k = 0; k < 8; k++)
         for (int n = 0; n < 256; n++)
             big_table[k][n] = rev8(big_table[k][n]);
@@ -74,8 +74,8 @@ static void big_init64(crcfn64 fn, uint64_t big_table[8][256]) {
  * *after* calling.
  * 64 bit crc = process 8 bytes at once;
  */
-static uint64_t little64(uint64_t little_table[8][256], uint64_t crc, void *buf,
-                         size_t len) {
+uint64_t crcspeed64little(uint64_t little_table[8][256], uint64_t crc,
+                          void *buf, size_t len) {
     unsigned char *next = buf;
 
     while (len && ((uintptr_t)next & 7) != 0) {
@@ -106,8 +106,8 @@ static uint64_t little64(uint64_t little_table[8][256], uint64_t crc, void *buf,
 /* Calculate a non-inverted CRC eight bytes at a time on a big-endian
  * architecture.
  */
-static uint64_t big64(uint64_t big_table[8][256], uint64_t crc, void *buf,
-                      size_t len) {
+uint64_t crcspeed64big(uint64_t big_table[8][256], uint64_t crc, void *buf,
+                       size_t len) {
     unsigned char *next = buf;
 
     crc = rev8(crc);
@@ -138,21 +138,19 @@ static uint64_t big64(uint64_t big_table[8][256], uint64_t crc, void *buf,
 /* Return the CRC of buf[0..len-1] with initial crc, processing eight bytes
    at a time using passed-in lookup table.
    This selects one of two routines depending on the endianess of
-   the architecture.  A good optimizing compiler will determine the endianess
-   at compile time if it can, and get rid of the unused code and table.  If the
-   endianess can be changed at run time, then this code will handle that as
-   well, initializing and using two tables, if called upon to do so. */
-uint64_t crcspeed64(uint64_t table[8][256], uint64_t crc, void *buf,
-                    size_t len) {
+   the architecture. */
+uint64_t crcspeed64native(uint64_t table[8][256], uint64_t crc, void *buf,
+                          size_t len) {
     uint64_t n = 1;
 
-    return *(char *)&n ? little64(table, crc, buf, len)
-                       : big64(table, crc, buf, len);
+    return *(char *)&n ? crcspeed64little(table, crc, buf, len)
+                       : crcspeed64big(table, crc, buf, len);
 }
 
 /* Initialize CRC lookup table in architecture-dependent manner. */
-void crcspeed_init64(crcfn64 fn, uint64_t table[8][256]) {
+void crcspeed64native_init(crcfn64 fn, uint64_t table[8][256]) {
     uint64_t n = 1;
 
-    *(char *)&n ? crc_init64(fn, table) : big_init64(fn, table);
+    *(char *)&n ? crcspeed64little_init(fn, table)
+                : crcspeed64big_init(fn, table);
 }

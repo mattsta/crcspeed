@@ -25,19 +25,79 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE. */
 
-#include "crcspeed.h"
-#include "crc64.h"
+#include "crc64speed.h"
 
-static uint64_t crc64_table[8][256] = {{0}};
+/* If CRCSPEED64_DUAL is defined, we allow calls to
+ * both _little and _big CRC.
+ * By default, we only allow one endianness to be used
+ * and the first call to either _init function will set the
+ * lookup table endianness for the life of this module.
+ * We don't enable dual lookups by default because
+ * each 8x256 lookup table is 16k. */
+#ifndef CRC64SPEED_DUAL
+static uint64_t crc64_table[8][256] = { { 0 } };
+static void *crc64_table_little = NULL, *crc64_table_big = NULL;
+static const bool dual = false;
+#else
+static uint64_t crc64_table_little[8][256] = { { 0 } };
+static uint64_t crc64_table_big[8][256] = { { 0 } };
+static void *crc64_table = NULL;
+static const bool dual = true;
+#endif
 
-void crc64speed_init(void) {
+/* Returns false if table already initialized. */
+bool crc64speed_init(void) {
+#ifndef CRC64SPEED_DUAL
+    if (crc64_table[0][1] != 0)
+        return false;
+#endif
     crcfn64 forced = (crcfn64)crc64;
-    crcspeed_init64(forced, crc64_table);
+    crcspeed64little_init(forced, dual ? crc64_table_little : crc64_table);
+    return true;
+}
+
+/* Returns false if table already initialized. */
+bool crc64speed_init_big(void) {
+#ifndef CRC64SPEED_DUAL
+    if (crc64_table[0][1] != 0)
+        return false;
+#endif
+    crcfn64 forced = (crcfn64)crc64;
+    crcspeed64big_init(forced, dual ? crc64_table_big : crc64_table);
+    return true;
 }
 
 uint64_t crc64speed(uint64_t crc, const unsigned char *s, uint64_t l) {
-    return crcspeed64(crc64_table, crc, (void *)s, l);
+    /* Quickly check if CRC table is initialized to little endian correctly. */
+    if (crc64_table[0][1] != UINT64_C(0x7ad870c830358979))
+        return -1;
+
+    return crcspeed64little(dual ? crc64_table_little : crc64_table, crc,
+                            (void *)s, l);
 }
+
+uint64_t crc64speed_big(uint64_t crc, const unsigned char *s, uint64_t l) {
+    /* Quickly check if CRC table is initialized to big endian correctly. */
+    if (crc64_table[0][1] != UINT64_C(0x79893530c870d87a))
+        return -1;
+
+    return crcspeed64big(dual ? crc64_table_big : crc64_table, crc, (void *)s,
+                         l);
+}
+
+bool crc64speed_init_native(void) {
+    const uint64_t n = 1;
+    return *(char *)&n ? crc64speed_init() : crc64speed_init_big();
+}
+
+/* If you are on a platform where endianness can change at runtime, this
+ * will break unless you compile with CRC64SPEED_DUAL and manually run
+ * _init() and _init_big() instead of using _init_native() */
+uint64_t crc64speed_native(uint64_t crc, const unsigned char *s, uint64_t l) {
+    const uint64_t n = 1;
+    return *(char *)&n ? crc64speed(crc, s, l) : crc64speed_big(crc, s, l);
+}
+
 
 /* Test main */
 #if defined(REDIS_TEST) || defined(REDIS_TEST_MAIN)
@@ -49,13 +109,11 @@ int crc64Test(int argc, char *argv[]) {
     UNUSED(argv);
     crc64speed_init();
     printf("e9c6d914c4b8d9ca == %016llx\n",
-        (unsigned long long) crc64speed(0,(unsigned char*)"123456789",9));
+           (unsigned long long)crc64speed(0, (unsigned char *)"123456789", 9));
     return 0;
 }
 #endif
 
 #ifdef REDIS_TEST_MAIN
-int main(int argc, char *argv[]) {
-    return crc64Test(argc, argv);
-}
+int main(int argc, char *argv[]) { return crc64Test(argc, argv); }
 #endif
