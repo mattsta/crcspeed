@@ -50,6 +50,9 @@ void crcspeed64little_init(crcfn64 crcfn, uint64_t table[8][256]) {
 
 /* Reverse the bytes in a 64-bit word. */
 static inline uint64_t rev8(uint64_t a) {
+#if defined(__GNUC__) || defined(__clang__)
+    return __builtin_bswap64(a);
+#else
     uint64_t m;
 
     m = UINT64_C(0xff00ff00ff00ff);
@@ -57,6 +60,7 @@ static inline uint64_t rev8(uint64_t a) {
     m = UINT64_C(0xffff0000ffff);
     a = ((a >> 16) & m) | (a & m) << 16;
     return a >> 32 | a << 32;
+#endif
 }
 
 /* This function is called once to initialize the CRC table for use on a
