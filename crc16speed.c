@@ -49,17 +49,24 @@ static const bool dual = true;
 #define LITTLE1 UINT16_C(0x1021)
 #define BIG1 UINT16_C(0x2110)
 
+/* Define CRC16SPEED_SAFE if you want runtime checks to stop
+ * CRCs from being calculated by uninitialized tables (and also stop tables
+ * from being initialized more than once). */
+#ifdef CRC16SPEED_SAFE
 #define should_init(table, val)                                                \
     do {                                                                       \
         if ((table)[0][1] == (val))                                            \
             return false;                                                      \
     } while (0)
-
 #define check_init(table, val)                                                 \
     do {                                                                       \
         if ((table)[0][1] != (val))                                            \
             return false;                                                      \
     } while (0)
+#else
+#define should_init(a, b)
+#define check_init(a, b)
+#endif
 
 static uint16_t wrapped16(uint16_t crc, unsigned char *s, uint64_t l) {
     (void)crc;

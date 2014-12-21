@@ -49,17 +49,24 @@ static const bool dual = true;
 #define LITTLE1 UINT64_C(0x7ad870c830358979)
 #define BIG1 UINT64_C(0x79893530c870d87a)
 
+/* Define CRC64SPEED_SAFE if you want runtime checks to stop
+ * CRCs from being calculated by uninitialized tables (and also stop tables
+ * from being initialized more than once). */
+#ifdef CRC64SPEED_SAFE
 #define should_init(table, val)                                                \
     do {                                                                       \
         if ((table)[0][1] == (val))                                            \
             return false;                                                      \
     } while (0)
-
 #define check_init(table, val)                                                 \
     do {                                                                       \
         if ((table)[0][1] != (val))                                            \
             return false;                                                      \
     } while (0)
+#else
+#define should_init(a, b)
+#define check_init(a, b)
+#endif
 
 /* Returns false if table already initialized. */
 bool crc64speed_init(void) {
