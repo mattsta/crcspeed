@@ -92,7 +92,7 @@ uint16_t crc16_lookup(uint16_t crc, const void *in_data, uint64_t len) {
     return crc;
 }
 
-/* Returns false if table already initialized. */
+/* Returns false if CRC16SPEED_SAFE and table already initialized. */
 bool crc16speed_init(void) {
 #ifndef CRC16SPEED_DUAL
     should_init(crc16_table, LITTLE1);
@@ -103,7 +103,7 @@ bool crc16speed_init(void) {
     return true;
 }
 
-/* Returns false if table already initialized. */
+/* Returns false if CRC16SPEED_SAFE and table already initialized. */
 bool crc16speed_init_big(void) {
 #ifndef CRC16SPEED_DUAL
     should_init(crc16_table, BIG1);

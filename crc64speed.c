@@ -92,7 +92,8 @@ static const bool dual = true;
  *    Algorithm    = bit-by-bit-fast
  *
  * Modifications after generation (by matt):
- *   - included finalize step in-line with update for single-pass generation
+ *   - included finalize step in-line with update for single-call generation
+ *   - re-worked some inner variable architectures
  *   - adjusted function parameters to match expected prototypes.
  *****************************************************************************/
 
@@ -152,7 +153,7 @@ uint64_t crc64_lookup(uint64_t crc, const void *in_data, const uint64_t len) {
     return crc;
 }
 
-/* Returns false if table already initialized. */
+/* Returns false if CRC64SPEED_SAFE and table already initialized. */
 bool crc64speed_init(void) {
 #ifndef CRC64SPEED_DUAL
     should_init(crc64_table, LITTLE1);
@@ -163,7 +164,7 @@ bool crc64speed_init(void) {
     return true;
 }
 
-/* Returns false if table already initialized. */
+/* Returns false if CRC64SPEED_SAFE and table already initialized. */
 bool crc64speed_init_big(void) {
 #ifndef CRC64SPEED_DUAL
     should_init(crc64_table, BIG1);

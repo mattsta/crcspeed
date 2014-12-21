@@ -38,7 +38,7 @@ void crcspeed64little_init(crcfn64 crcfn, uint64_t table[8][256]) {
         table[0][n] = crcfn(0, &n, 1);
     }
 
-    /* generate CRCs for those followed by 1 to 7 zero bytes */
+    /* generate nested CRC table for future slice-by-8 lookup */
     for (int n = 0; n < 256; n++) {
         crc = table[0][n];
         for (int k = 1; k < 8; k++) {
@@ -56,7 +56,7 @@ void crcspeed16little_init(crcfn16 crcfn, uint16_t table[8][256]) {
         table[0][n] = crcfn(0, &n, 1);
     }
 
-    /* generate CRCs for those followed by 1 to 7 zero bytes */
+    /* generate nested CRC table for future slice-by-8 lookup */
     for (int n = 0; n < 256; n++) {
         crc = table[0][n];
         for (int k = 1; k < 8; k++) {
