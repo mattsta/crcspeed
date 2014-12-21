@@ -1,8 +1,10 @@
 #ifndef CRC16SPEED_H
 #define CRC16SPEED_H
 #include "crcspeed.h"
-#include "crc16.h"
 #include "stdbool.h"
+
+uint16_t crc16(uint16_t crc, void *data, uint64_t len);
+uint16_t crc16_lookup(uint16_t crc, void *in_data, uint64_t len);
 
 bool crc16speed_init(void);
 uint16_t crc16speed(uint16_t crc, const unsigned char *s, uint64_t l);

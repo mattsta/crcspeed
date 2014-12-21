@@ -37,11 +37,6 @@ static inline uint64_t rdtsc() {
     return ((uint64_t)hi << 32) | lo;
 }
 
-static uint16_t wrapped16(uint16_t crc, unsigned char *s, uint64_t l) {
-    (void)crc;
-    return crc16((char *)s, l);
-}
-
 int main(int argc, char *argv[]) {
     crc64speed_init();
     crc16speed_init();
@@ -51,8 +46,10 @@ int main(int argc, char *argv[]) {
                (uint64_t)crc64(0, (unsigned char *)"123456789", 9));
         printf("[64speed]: e9c6d914c4b8d9ca == %016llx\n",
                (uint64_t)crc64speed(0, (unsigned char *)"123456789", 9));
-        printf("[16regul]: 31c3 == %04llx\n",
-               (uint64_t)wrapped16(0, (unsigned char *)"123456789", 9));
+        printf("[16calcu]: 31c3 == %04llx\n",
+               (uint64_t)crc16(0, (unsigned char *)"123456789", 9));
+        printf("[16looku]: 31c3 == %04llx\n",
+                (uint64_t)crc16_lookup(0, (unsigned char *)"123456789", 9));
         printf("[16speed]: 31c3 == %04llx\n",
                (uint64_t)crc16speed(0, (unsigned char *)"123456789", 9));
         char li[] =
@@ -67,8 +64,10 @@ int main(int argc, char *argv[]) {
                (uint64_t)crc64(0, (unsigned char *)li, sizeof li));
         printf("[64speed]: c7794709e69683b3 == %016llx\n",
                (uint64_t)crc64speed(0, (unsigned char *)li, sizeof li));
-        printf("[16regul]: 4b20 == %04llx\n",
-               (uint64_t)wrapped16(0, (unsigned char *)li, sizeof li));
+        printf("[16calcu]: 4b20 == %04llx\n",
+               (uint64_t)crc16(0, (unsigned char *)li, sizeof li));
+        printf("[16looku]: 4b20 == %04llx\n",
+                (uint64_t)crc16_lookup(0, (unsigned char *)li, sizeof li));
         printf("[16speed]: 4b20 == %04llx\n",
                (uint64_t)crc16speed(0, (unsigned char *)li, sizeof li));
 
@@ -93,9 +92,12 @@ int main(int argc, char *argv[]) {
     }
     fclose(fp);
 
-    fns compares[] = { crc64, crc64speed, (fns)wrapped16, (fns)crc16speed };
+    fns compares[] = { crc64, crc64speed,
+                       (fns)crc16, (fns)crc16_lookup, (fns)crc16speed };
     size_t cc = sizeof(compares) / sizeof(*compares); /* compare count */
-    char *names[] = { "crc64", "crc64speed", "crc16", "crc16speed" };
+    char *names[] = { "crc64", "crc64speed",
+                      "crc16 (no lookup table)",
+                      "crc16 (lookup table)", "crc16speed" };
     uint64_t results[cc];
 
     double size_mb = sz / 1024.0 / 1024.0;
@@ -129,8 +131,10 @@ int main(int argc, char *argv[]) {
                    total_time_seconds, speed, cycles);
         }
 
-        /* We test outputs in pairs, so compare every 2 results for equality. */
-        if (i % 2 == 0) {
+        /* We test outputs in pairs, so compare every 2 results for equality.
+         * The second loop of tests is *three* compares, so we need the i < 3
+         * exception for overriding the previous value. */
+        if (i % 2 == 0 && i < 3) {
             accum_result = result;
         } else if (accum_result != result) {
             printf("ERROR: CRC results don't match! (%016llx vs. %016llx)\n",

@@ -68,9 +68,28 @@ static const bool dual = true;
 #define check_init(a, b)
 #endif
 
-static uint16_t wrapped16(uint16_t crc, unsigned char *s, uint64_t l) {
-    (void)crc;
-    return crc16((char *)s, l);
+/* This is CRC-16-CCITT (non-reflected poly, non-inverted input/output).
+ * crc16() is only used to bootstrap an initial 256-entry lookup table. */
+#define POLY 0x1021
+uint16_t crc16(uint16_t crc, void *in_data, uint64_t len) {
+    uint8_t *data = in_data;
+    for (uint64_t i = 0; i < len; i++) {
+        crc = crc ^ (data[i] << 8);
+        for (int j = 0; j < 8; j++)
+            if (crc & 0x8000)
+                crc = (crc << 1) ^ POLY;
+            else
+                crc = (crc << 1);
+    }
+    return crc;
+}
+
+/* Only for testing; doesn't support DUAL */
+uint16_t crc16_lookup(uint16_t crc, void *in_data, uint64_t len) {
+    uint8_t *data = in_data;
+    for (uint64_t i = 0; i < len; i++)
+        crc = (crc << 8) ^ crc16_table[0][((crc >> 8) ^ data[i]) & 0x00ff];
+    return crc;
 }
 
 /* Returns false if table already initialized. */
@@ -80,8 +99,7 @@ bool crc16speed_init(void) {
 #else
     should_init(crc16_table_little, LITTLE1);
 #endif
-    crcfn16 forced = (crcfn16)wrapped16;
-    crcspeed16little_init(forced, dual ? crc16_table_little : crc16_table);
+    crcspeed16little_init(crc16, dual ? crc16_table_little : crc16_table);
     return true;
 }
 
@@ -92,8 +110,7 @@ bool crc16speed_init_big(void) {
 #else
     should_init(crc16_table_big, BIG1);
 #endif
-    crcfn16 forced = (crcfn16)crc16;
-    crcspeed16big_init(forced, dual ? crc16_table_big : crc16_table);
+    crcspeed16big_init(crc16, dual ? crc16_table_big : crc16_table);
     return true;
 }
 
@@ -142,8 +159,10 @@ int crc16Test(int argc, char *argv[]) {
     UNUSED(argc);
     UNUSED(argv);
     crc16speed_init();
-    printf("[regular]: 31c3 == %04llx\n",
-           (uint64_t)wrapped16(0, (unsigned char *)"123456789", 9));
+    printf("[calcula]: 31c3 == %04llx\n",
+           (uint64_t)crc16(0, (unsigned char *)"123456789", 9));
+    printf("[lookupt]: 31c3 == %04llx\n",
+           (uint64_t)crc16_lookup(0, (unsigned char *)"123456789", 9));
     printf("[16speed]: 31c3 == %04llx\n",
            (uint64_t)crc16speed(0, (unsigned char *)"123456789", 9));
     char li[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed "
@@ -154,8 +173,10 @@ int crc16Test(int argc, char *argv[]) {
                 "cillum dolore eu fugiat nulla pariatur. Excepteur sint "
                 "occaecat cupidatat non proident, sunt in culpa qui officia "
                 "deserunt mollit anim id est laborum.";
-    printf("[regular]: 4b20 == %04llx\n",
-           (uint64_t)wrapped16(0, (unsigned char *)li, sizeof li));
+    printf("[calcula]: 4b20 == %04llx\n",
+           (uint64_t)crc16(0, (unsigned char *)li, sizeof li));
+    printf("[lookupt]: 4b20 == %04llx\n",
+           (uint64_t)crc16_lookup(0, (unsigned char *)li, sizeof li));
     printf("[16speed]: 4b20 == %04llx\n",
            (uint64_t)crc16speed(0, (unsigned char *)li, sizeof li));
     return 0;

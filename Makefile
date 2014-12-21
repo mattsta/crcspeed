@@ -36,7 +36,7 @@ all: crcspeed-test
 
 .PHONY: all
 
-crcspeed-test: crcspeed.c crc64.c crc64speed.c crc16.c crc16speed.c main.c
+crcspeed-test: crcspeed.c crc64.c crc64speed.c crc16speed.c main.c
 	$(REDIS_CC) $^ -o $@
 
 %.o: %.c
