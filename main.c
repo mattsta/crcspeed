@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "crc64speed.h"
-#include "crc64.h"
+#include "crc16speed.h"
 
 static long long ustime(void) {
     struct timeval tv;
@@ -37,8 +37,14 @@ static inline uint64_t rdtsc() {
     return ((uint64_t)hi << 32) | lo;
 }
 
+static uint16_t wrapped16(uint16_t crc, unsigned char *s, uint64_t l) {
+    (void)crc;
+    return crc16((char *)s, l);
+}
+
 int main(int argc, char *argv[]) {
     crc64speed_init();
+    crc16speed_init();
 
     if (argc == 1) {
         printf("[64regul]: e9c6d914c4b8d9ca == %016llx\n",
@@ -61,6 +67,11 @@ int main(int argc, char *argv[]) {
                (uint64_t)crc64(0, (unsigned char *)li, sizeof li));
         printf("[64speed]: c7794709e69683b3 == %016llx\n",
                (uint64_t)crc64speed(0, (unsigned char *)li, sizeof li));
+        printf("[16regul]: 4b20 == %04llx\n",
+               (uint64_t)wrapped16(0, (unsigned char *)li, sizeof li));
+        printf("[16speed]: 4b20 == %04llx\n",
+               (uint64_t)crc16speed(0, (unsigned char *)li, sizeof li));
+
         return 0;
     }
 
@@ -82,13 +93,13 @@ int main(int argc, char *argv[]) {
     }
     fclose(fp);
 
-    fns compares[] = { crc64, crc64speed };
+    fns compares[] = { crc64, crc64speed, (fns)wrapped16, (fns)crc16speed };
     size_t cc = sizeof(compares) / sizeof(*compares); /* compare count */
-    char *names[] = { "crc64", "crc64speed" };
+    char *names[] = { "crc64", "crc64speed", "crc16", "crc16speed" };
     uint64_t results[cc];
 
     double size_mb = sz / 1024.0 / 1024.0;
-    printf("Comparing CRC64 against %0.2lf MB file...\n\n", size_mb);
+    printf("Comparing CRCs against %0.2lf MB file...\n\n", size_mb);
 
     bool error = false;
     uint64_t accum_result = 0;
@@ -113,7 +124,7 @@ int main(int argc, char *argv[]) {
             printf("%016llx:%lf\n", result, speed);
         } else { /* boring human readable results */
             printf("%s\n", names[i]);
-            printf("CRC64 = %016llx\n", result);
+            printf("CRC = %016llx\n", result);
             printf("%lf seconds at %0.2f MB/s (%0.2f CPU cycles per byte)\n",
                    total_time_seconds, speed, cycles);
         }
@@ -121,8 +132,8 @@ int main(int argc, char *argv[]) {
         /* We test outputs in pairs, so compare every 2 results for equality. */
         if (i % 2 == 0) {
             accum_result = result;
-        else if (accum_result != result)
-            printf("ERROR: CRC64 results don't match! (%016llx vs. %016llx)\n",
+        } else if (accum_result != result) {
+            printf("ERROR: CRC results don't match! (%016llx vs. %016llx)\n",
                    accum_result, result);
             error = true;
         }

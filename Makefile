@@ -32,18 +32,18 @@ QUIET_LINK = @printf '    %b %b\n' $(LINKCOLOR)LINK$(ENDCOLOR) $(BINCOLOR)$@$(EN
 QUIET_INSTALL = @printf '    %b %b\n' $(LINKCOLOR)INSTALL$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR) 1>&2;
 endif
 
-all: crc64speed
+all: crcspeed-test
 
 .PHONY: all
 
-crc64speed: crcspeed.c crc64.c crc64speed.c main.c
+crcspeed-test: crcspeed.c crc64.c crc64speed.c crc16.c crc16speed.c main.c
 	$(REDIS_CC) $^ -o $@
 
 %.o: %.c
 	$(REDIS_CC) -c $<
 
 clean:
-	rm -rf crc64speed
+	rm -rf crcspeed-test
 
 .PHONY: clean
 
