@@ -5,6 +5,7 @@
 
 /* Does not require init */
 uint64_t crc64(uint64_t crc, const void *data, const uint64_t len);
+void crc64speed_cache_table(void);
 
 /* All other crc functions here require _init() before usage. */
 bool crc64speed_init(void);

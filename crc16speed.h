@@ -5,6 +5,7 @@
 
 /* Does not require init */
 uint16_t crc16(uint16_t crc, const void *data, const uint64_t len);
+void crc16speed_cache_table(void);
 
 /* All other crc functions here require _init() before usage. */
 bool crc16speed_init(void);

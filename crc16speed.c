@@ -149,6 +149,22 @@ uint16_t crc16speed_native(uint16_t crc, const void *s, const uint64_t l) {
     return *(char *)&n ? crc16speed(crc, s, l) : crc16speed_big(crc, s, l);
 }
 
+/* Iterate over table to fully load it into a cache near the CPU. */
+void crc16speed_cache_table(void) {
+    uint16_t m;
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 256; ++j) {
+#ifndef CRC16SPEED_DUAL
+            m = crc16_table[i][j];
+#else
+            m = crc16_table_little[i][j];
+            m += crc16_table_big[i][j];
+#endif
+            ++m;
+        }
+    }
+}
+
 /* Test main */
 #if defined(REDIS_TEST) || defined(REDIS_TEST_MAIN)
 #include <stdio.h>

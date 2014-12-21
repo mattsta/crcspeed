@@ -114,6 +114,11 @@ int main(int argc, char *argv[]) {
         /* prime the code path with a dummy untimed call */
         compares[i](0, (unsigned char *)"howdy", 5);
 
+        if (i < 3)
+            crc64speed_cache_table();
+        else
+            crc16speed_cache_table();
+
         long long start = ustime();
         uint64_t start_c = rdtsc();
         unsigned long long result =

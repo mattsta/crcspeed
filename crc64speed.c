@@ -27,7 +27,7 @@
 
 #include "crc64speed.h"
 
-/* If CRCSPEED64_DUAL is defined, we allow calls to
+/* If CRC64SPEED_DUAL is defined, we allow calls to
  * both _little and _big CRC.
  * By default, we only allow one endianness to be used
  * and the first call to either _init function will set the
@@ -200,6 +200,22 @@ uint64_t crc64speed_big(uint64_t crc, const void *s, const uint64_t l) {
 bool crc64speed_init_native(void) {
     const uint64_t n = 1;
     return *(char *)&n ? crc64speed_init() : crc64speed_init_big();
+}
+
+/* Iterate over table to fully load it into a cache near the CPU. */
+void crc64speed_cache_table(void) {
+    uint64_t m;
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 256; ++j) {
+#ifndef CRC64SPEED_DUAL
+            m = crc64_table[i][j];
+#else
+            m = crc64_table_little[i][j];
+            m += crc64_table_big[i][j];
+#endif
+            ++m;
+        }
+    }
 }
 
 /* If you are on a platform where endianness can change at runtime, this
