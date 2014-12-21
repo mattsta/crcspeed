@@ -45,11 +45,28 @@ static void *crc64_table = NULL;
 static const bool dual = true;
 #endif
 
+/* value of crc64_table[0][1], architecture dependent. */
+#define LITTLE1 UINT64_C(0x7ad870c830358979)
+#define BIG1 UINT64_C(0x79893530c870d87a)
+
+#define should_init(table, val)                                                \
+    do {                                                                       \
+        if ((table)[0][1] == (val))                                            \
+            return false;                                                      \
+    } while (0)
+
+#define check_init(table, val)                                                 \
+    do {                                                                       \
+        if ((table)[0][1] != (val))                                            \
+            return false;                                                      \
+    } while (0)
+
 /* Returns false if table already initialized. */
 bool crc64speed_init(void) {
 #ifndef CRC64SPEED_DUAL
-    if (crc64_table[0][1] != 0)
-        return false;
+    should_init(crc64_table, LITTLE1);
+#else
+    should_init(crc64_table_little, LITTLE1);
 #endif
     crcfn64 forced = (crcfn64)crc64;
     crcspeed64little_init(forced, dual ? crc64_table_little : crc64_table);
@@ -59,8 +76,9 @@ bool crc64speed_init(void) {
 /* Returns false if table already initialized. */
 bool crc64speed_init_big(void) {
 #ifndef CRC64SPEED_DUAL
-    if (crc64_table[0][1] != 0)
-        return false;
+    should_init(crc64_table, BIG1);
+#else
+    should_init(crc64_table_big, BIG1);
 #endif
     crcfn64 forced = (crcfn64)crc64;
     crcspeed64big_init(forced, dual ? crc64_table_big : crc64_table);
@@ -68,19 +86,23 @@ bool crc64speed_init_big(void) {
 }
 
 uint64_t crc64speed(uint64_t crc, const unsigned char *s, uint64_t l) {
-    /* Quickly check if CRC table is initialized to little endian correctly. */
-    if (crc64_table[0][1] != UINT64_C(0x7ad870c830358979))
-        return -1;
-
+/* Quickly check if CRC table is initialized to little endian correctly. */
+#ifndef CRC64SPEED_DUAL
+    check_init(crc64_table, LITTLE1);
+#else
+    check_init(crc64_table_little, LITTLE1);
+#endif
     return crcspeed64little(dual ? crc64_table_little : crc64_table, crc,
                             (void *)s, l);
 }
 
 uint64_t crc64speed_big(uint64_t crc, const unsigned char *s, uint64_t l) {
-    /* Quickly check if CRC table is initialized to big endian correctly. */
-    if (crc64_table[0][1] != UINT64_C(0x79893530c870d87a))
-        return -1;
-
+/* Quickly check if CRC table is initialized to big endian correctly. */
+#ifndef CRC64SPEED_DUAL
+    check_init(crc64_table, BIG1);
+#else
+    check_init(crc64_table_big, BIG1);
+#endif
     return crcspeed64big(dual ? crc64_table_big : crc64_table, crc, (void *)s,
                          l);
 }
@@ -98,7 +120,6 @@ uint64_t crc64speed_native(uint64_t crc, const unsigned char *s, uint64_t l) {
     return *(char *)&n ? crc64speed(crc, s, l) : crc64speed_big(crc, s, l);
 }
 
-
 /* Test main */
 #if defined(REDIS_TEST) || defined(REDIS_TEST_MAIN)
 #include <stdio.h>
@@ -108,8 +129,22 @@ int crc64Test(int argc, char *argv[]) {
     UNUSED(argc);
     UNUSED(argv);
     crc64speed_init();
-    printf("e9c6d914c4b8d9ca == %016llx\n",
-           (unsigned long long)crc64speed(0, (unsigned char *)"123456789", 9));
+    printf("[regular]: e9c6d914c4b8d9ca == %016llx\n",
+           (uint64_t)crc64(0, (unsigned char *)"123456789", 9));
+    printf("[64speed]: e9c6d914c4b8d9ca == %016llx\n",
+           (uint64_t)crc64speed(0, (unsigned char *)"123456789", 9));
+    char li[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed "
+                "do eiusmod tempor incididunt ut labore et dolore magna "
+                "aliqua. Ut enim ad minim veniam, quis nostrud exercitation "
+                "ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis "
+                "aute irure dolor in reprehenderit in voluptate velit esse "
+                "cillum dolore eu fugiat nulla pariatur. Excepteur sint "
+                "occaecat cupidatat non proident, sunt in culpa qui officia "
+                "deserunt mollit anim id est laborum.";
+    printf("[regular]: c7794709e69683b3 == %016llx\n",
+           (uint64_t)crc64(0, (unsigned char *)li, sizeof li));
+    printf("[64speed]: c7794709e69683b3 == %016llx\n",
+           (uint64_t)crc64speed(0, (unsigned char *)li, sizeof li));
     return 0;
 }
 #endif

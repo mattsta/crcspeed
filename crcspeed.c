@@ -82,11 +82,12 @@ uint64_t crcspeed64little(uint64_t little_table[8][256], uint64_t crc,
                           void *buf, size_t len) {
     unsigned char *next = buf;
 
+    /* process individual bytes until we reach an 8-byte aligned pointer */
     while (len && ((uintptr_t)next & 7) != 0) {
         crc = little_table[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
         len--;
     }
-    /* fast middle processing */
+    /* fast middle processing, 8 bytes (aligned!) per loop */
     while (len >= 8) {
         crc ^= *(uint64_t *)next;
         crc = little_table[7][crc & 0xff] ^
@@ -100,6 +101,7 @@ uint64_t crcspeed64little(uint64_t little_table[8][256], uint64_t crc,
         next += 8;
         len -= 8;
     }
+    /* process remaining bytes (can't be larger than 8) */
     while (len) {
         crc = little_table[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
         len--;

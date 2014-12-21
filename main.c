@@ -27,7 +27,7 @@ typedef uint64_t (*fns)(uint64_t, const unsigned char *, uint64_t);
 extern off_t ftello(FILE *stream);
 #endif
 
-uint64_t rdtsc() {
+static inline uint64_t rdtsc() {
     unsigned int lo = 0, hi = 0;
 
     /* ask for something that can't be executed out-of-order
@@ -41,10 +41,26 @@ int main(int argc, char *argv[]) {
     crc64speed_init();
 
     if (argc == 1) {
-        printf("[regular]: e9c6d914c4b8d9ca == %016llx\n",
+        printf("[64regul]: e9c6d914c4b8d9ca == %016llx\n",
                (uint64_t)crc64(0, (unsigned char *)"123456789", 9));
         printf("[64speed]: e9c6d914c4b8d9ca == %016llx\n",
                (uint64_t)crc64speed(0, (unsigned char *)"123456789", 9));
+        printf("[16regul]: 31c3 == %04llx\n",
+               (uint64_t)wrapped16(0, (unsigned char *)"123456789", 9));
+        printf("[16speed]: 31c3 == %04llx\n",
+               (uint64_t)crc16speed(0, (unsigned char *)"123456789", 9));
+        char li[] =
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do "
+            "eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut "
+            "enim ad minim veniam, quis nostrud exercitation ullamco laboris "
+            "nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in "
+            "reprehenderit in voluptate velit esse cillum dolore eu fugiat "
+            "nulla pariatur. Excepteur sint occaecat cupidatat non proident, "
+            "sunt in culpa qui officia deserunt mollit anim id est laborum.";
+        printf("[64regul]: c7794709e69683b3 == %016llx\n",
+               (uint64_t)crc64(0, (unsigned char *)li, sizeof li));
+        printf("[64speed]: c7794709e69683b3 == %016llx\n",
+               (uint64_t)crc64speed(0, (unsigned char *)li, sizeof li));
         return 0;
     }
 
@@ -74,6 +90,7 @@ int main(int argc, char *argv[]) {
     double size_mb = sz / 1024.0 / 1024.0;
     printf("Comparing CRC64 against %0.2lf MB file...\n\n", size_mb);
 
+    bool error = false;
     uint64_t accum_result = 0;
     for (size_t i = 0; i < cc; i++) {
         /* prime the code path with a dummy untimed call */
@@ -101,16 +118,19 @@ int main(int argc, char *argv[]) {
                    total_time_seconds, speed, cycles);
         }
 
-        if (!accum_result && i == 0)
+        /* We test outputs in pairs, so compare every 2 results for equality. */
+        if (i % 2 == 0) {
             accum_result = result;
         else if (accum_result != result)
             printf("ERROR: CRC64 results don't match! (%016llx vs. %016llx)\n",
                    accum_result, result);
+            error = true;
+        }
 
         printf("\n");
         fflush(stdout);
     }
     free(contents);
 
-    return 0;
+    return error;
 }
