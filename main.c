@@ -20,7 +20,7 @@ static long long ustime(void) {
     return ust;
 }
 
-typedef uint64_t (*fns)(uint64_t, void *, uint64_t);
+typedef uint64_t (*fns)(uint64_t, const void *, const uint64_t);
 
 /* GCC 4.8 on Linux is dumb */
 #ifndef ftello

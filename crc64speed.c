@@ -104,11 +104,9 @@ static const bool dual = true;
  * \return             The reflected data.
  *****************************************************************************/
 static inline uint_fast64_t crc_reflect(uint_fast64_t data, size_t data_len) {
-    unsigned int i;
-    uint_fast64_t ret;
+    uint_fast64_t ret = data & 0x01;
 
-    ret = data & 0x01;
-    for (i = 1; i < data_len; i++) {
+    for (size_t i = 1; i < data_len; i++) {
         data >>= 1;
         ret = (ret << 1) | (data & 0x01);
     }
@@ -123,15 +121,13 @@ static inline uint_fast64_t crc_reflect(uint_fast64_t data, size_t data_len) {
  * \param data_len Number of bytes in the \a data buffer.
  * \return         The updated crc value.
  ******************************************************************************/
-uint64_t crc64(uint_fast64_t crc, void *in_data, uint64_t data_len) {
-    uint8_t *data = in_data;
-    unsigned int i;
+uint64_t crc64(uint_fast64_t crc, const void *in_data, const uint64_t len) {
+    const uint8_t *data = in_data;
     bool bit;
-    unsigned char c;
 
-    while (data_len--) {
-        c = *data++;
-        for (i = 0x01; i & 0xff; i <<= 1) {
+    for (uint64_t offset = 0; offset < len; offset++) {
+        uint8_t c = data[offset];
+        for (uint_fast8_t i = 0x01; i & 0xff; i <<= 1) {
             bit = crc & 0x8000000000000000;
             if (c & i) {
                 bit = !bit;
@@ -149,8 +145,8 @@ uint64_t crc64(uint_fast64_t crc, void *in_data, uint64_t data_len) {
 /******************** END GENERATED PYCRC FUNCTIONS ********************/
 
 /* Only for testing; doesn't support DUAL */
-uint64_t crc64_lookup(uint64_t crc, void *in_data, uint64_t len) {
-    uint8_t *data = in_data;
+uint64_t crc64_lookup(uint64_t crc, const void *in_data, const uint64_t len) {
+    const uint8_t *data = in_data;
     for (size_t i = 0; i < len; i++)
         crc = crc64_table[0][(uint8_t)crc ^ data[i]] ^ (crc >> 8);
     return crc;
@@ -178,7 +174,7 @@ bool crc64speed_init_big(void) {
     return true;
 }
 
-uint64_t crc64speed(uint64_t crc, const unsigned char *s, uint64_t l) {
+uint64_t crc64speed(uint64_t crc, const void *s, const uint64_t l) {
 /* Quickly check if CRC table is initialized to little endian correctly. */
 #ifndef CRC64SPEED_DUAL
     check_init(crc64_table, LITTLE1);
@@ -189,7 +185,7 @@ uint64_t crc64speed(uint64_t crc, const unsigned char *s, uint64_t l) {
                             (void *)s, l);
 }
 
-uint64_t crc64speed_big(uint64_t crc, const unsigned char *s, uint64_t l) {
+uint64_t crc64speed_big(uint64_t crc, const void *s, const uint64_t l) {
 /* Quickly check if CRC table is initialized to big endian correctly. */
 #ifndef CRC64SPEED_DUAL
     check_init(crc64_table, BIG1);
@@ -208,7 +204,7 @@ bool crc64speed_init_native(void) {
 /* If you are on a platform where endianness can change at runtime, this
  * will break unless you compile with CRC64SPEED_DUAL and manually run
  * _init() and _init_big() instead of using _init_native() */
-uint64_t crc64speed_native(uint64_t crc, const unsigned char *s, uint64_t l) {
+uint64_t crc64speed_native(uint64_t crc, const void *s, const uint64_t l) {
     const uint64_t n = 1;
     return *(char *)&n ? crc64speed(crc, s, l) : crc64speed_big(crc, s, l);
 }

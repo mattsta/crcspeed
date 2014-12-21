@@ -71,8 +71,8 @@ static const bool dual = true;
 /* This is CRC-16-CCITT (non-reflected poly, non-inverted input/output).
  * crc16() is only used to bootstrap an initial 256-entry lookup table. */
 #define POLY 0x1021
-uint16_t crc16(uint16_t crc, void *in_data, uint64_t len) {
-    uint8_t *data = in_data;
+uint16_t crc16(uint16_t crc, const void *in_data, uint64_t len) {
+    const uint8_t *data = in_data;
     for (uint64_t i = 0; i < len; i++) {
         crc = crc ^ (data[i] << 8);
         for (int j = 0; j < 8; j++)
@@ -85,8 +85,8 @@ uint16_t crc16(uint16_t crc, void *in_data, uint64_t len) {
 }
 
 /* Only for testing; doesn't support DUAL */
-uint16_t crc16_lookup(uint16_t crc, void *in_data, uint64_t len) {
-    uint8_t *data = in_data;
+uint16_t crc16_lookup(uint16_t crc, const void *in_data, uint64_t len) {
+    const uint8_t *data = in_data;
     for (uint64_t i = 0; i < len; i++)
         crc = (crc << 8) ^ crc16_table[0][((crc >> 8) ^ data[i]) & 0x00ff];
     return crc;
@@ -114,7 +114,7 @@ bool crc16speed_init_big(void) {
     return true;
 }
 
-uint16_t crc16speed(uint16_t crc, const unsigned char *s, uint64_t l) {
+uint16_t crc16speed(uint16_t crc, const void *s, const uint64_t l) {
 /* Quickly check if CRC table is initialized to little endian correctly. */
 #ifndef CRC16SPEED_DUAL
     check_init(crc16_table, LITTLE1);
@@ -125,7 +125,7 @@ uint16_t crc16speed(uint16_t crc, const unsigned char *s, uint64_t l) {
                             (void *)s, l);
 }
 
-uint16_t crc16speed_big(uint16_t crc, const unsigned char *s, uint64_t l) {
+uint16_t crc16speed_big(uint16_t crc, const void *s, const uint64_t l) {
 /* Quickly check if CRC table is initialized to big endian correctly. */
 #ifndef CRC16SPEED_DUAL
     check_init(crc16_table, BIG1);
@@ -144,7 +144,7 @@ bool crc16speed_init_native(void) {
 /* If you are on a platform where endianness can change at runtime, this
  * will break unless you compile with CRC16SPEED_DUAL and manually run
  * _init() and _init_big() instead of using _init_native() */
-uint16_t crc16speed_native(uint16_t crc, const unsigned char *s, uint64_t l) {
+uint16_t crc16speed_native(uint16_t crc, const void *s, const uint64_t l) {
     const uint64_t n = 1;
     return *(char *)&n ? crc16speed(crc, s, l) : crc16speed_big(crc, s, l);
 }
