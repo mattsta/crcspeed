@@ -5,7 +5,7 @@ OPTIMIZATION?=-O2
 
 # Default settings
 STD=-std=c99 -pedantic
-WARN=-Wall -W
+WARN=-Wall -W -Wextra
 OPT=$(OPTIMIZATION)
 
 PREFIX?=/usr/local
@@ -32,18 +32,25 @@ QUIET_LINK = @printf '    %b %b\n' $(LINKCOLOR)LINK$(ENDCOLOR) $(BINCOLOR)$@$(EN
 QUIET_INSTALL = @printf '    %b %b\n' $(LINKCOLOR)INSTALL$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR) 1>&2;
 endif
 
-all: crcspeed-test
+ALL=crcspeed-test crc64speed-test crc16speed-test
+all: $(ALL)
 
 .PHONY: all
 
 crcspeed-test: crcspeed.c crc64speed.c crc16speed.c main.c
 	$(REDIS_CC) $^ -o $@
 
+crc64speed-test: crcspeed.c crc64speed.c
+	$(REDIS_CC) $^ -o $@ -DREDIS_TEST_MAIN
+
+crc16speed-test: crcspeed.c crc16speed.c
+	$(REDIS_CC) $^ -o $@ -DREDIS_TEST_MAIN
+
 %.o: %.c
 	$(REDIS_CC) -c $<
 
 clean:
-	rm -rf crcspeed-test
+	rm -rf $(ALL)
 
 .PHONY: clean
 
