@@ -175,12 +175,12 @@ int crc16Test(int argc, char *argv[]) {
     UNUSED(argc);
     UNUSED(argv);
     crc16speed_init();
-    printf("[calcula]: 31c3 == %04llx\n",
-           (uint64_t)crc16(0, (unsigned char *)"123456789", 9));
-    printf("[lookupt]: 31c3 == %04llx\n",
-           (uint64_t)crc16_lookup(0, (unsigned char *)"123456789", 9));
-    printf("[16speed]: 31c3 == %04llx\n",
-           (uint64_t)crc16speed(0, (unsigned char *)"123456789", 9));
+    printf("[calcula]: 31c3 == %04" PRIx64 "\n",
+           (uint64_t)crc16(0, "123456789", 9));
+    printf("[lookupt]: 31c3 == %04" PRIx64 "\n",
+           (uint64_t)crc16_lookup(0, "123456789", 9));
+    printf("[16speed]: 31c3 == %04" PRIx64 "\n",
+           (uint64_t)crc16speed(0, "123456789", 9));
     char li[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed "
                 "do eiusmod tempor incididunt ut labore et dolore magna "
                 "aliqua. Ut enim ad minim veniam, quis nostrud exercitation "
@@ -189,12 +189,12 @@ int crc16Test(int argc, char *argv[]) {
                 "cillum dolore eu fugiat nulla pariatur. Excepteur sint "
                 "occaecat cupidatat non proident, sunt in culpa qui officia "
                 "deserunt mollit anim id est laborum.";
-    printf("[calcula]: 4b20 == %04llx\n",
-           (uint64_t)crc16(0, (unsigned char *)li, sizeof li));
-    printf("[lookupt]: 4b20 == %04llx\n",
-           (uint64_t)crc16_lookup(0, (unsigned char *)li, sizeof li));
-    printf("[16speed]: 4b20 == %04llx\n",
-           (uint64_t)crc16speed(0, (unsigned char *)li, sizeof li));
+    printf("[calcula]: 4b20 == %04" PRIx64 "\n",
+           (uint64_t)crc16(0, li, sizeof li));
+    printf("[lookupt]: 4b20 == %04" PRIx64 "\n",
+           (uint64_t)crc16_lookup(0, li, sizeof li));
+    printf("[16speed]: 4b20 == %04" PRIx64 "\n",
+           (uint64_t)crc16speed(0, li, sizeof li));
     return 0;
 }
 #endif
