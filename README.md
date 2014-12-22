@@ -14,7 +14,7 @@ Features
 --------
 
   - CRC processing in 8-byte steps for CRC-64 (Jones) and CRC-16 (CCITT).
-  - Generates CRCs with overhead of 1.5 CPU cylces per byte
+  - Generates CRCs with overhead of 1.5 CPU cycles per byte
   - Little endian and big endian support
     - big endian support hasn't been tested yet (because `qemu-system-sparc` hates me).
   - Test suite generates comparison for: bit-by-bit calculation, byte-by-byte calcuation
