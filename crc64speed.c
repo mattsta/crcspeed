@@ -35,12 +35,12 @@
  * We don't enable dual lookups by default because
  * each 8x256 lookup table is 16k. */
 #ifndef CRC64SPEED_DUAL
-static uint64_t crc64_table[8][256] = { { 0 } };
+static uint64_t crc64_table[8][256] = {{0}};
 static void *crc64_table_little = NULL, *crc64_table_big = NULL;
 static const bool dual = false;
 #else
-static uint64_t crc64_table_little[8][256] = { { 0 } };
-static uint64_t crc64_table_big[8][256] = { { 0 } };
+static uint64_t crc64_table_little[8][256] = {{0}};
+static uint64_t crc64_table_big[8][256] = {{0}};
 static void *crc64_table = NULL;
 static const bool dual = true;
 #endif

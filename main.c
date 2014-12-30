@@ -100,13 +100,11 @@ int main(int argc, char *argv[]) {
     }
     fclose(fp);
 
-    fns compares[] = { crc64,      crc64_lookup,      crc64speed,
-                       (fns)crc16, (fns)crc16_lookup, (fns)crc16speed };
+    fns compares[] = {crc64, crc64_lookup, crc64speed, (fns)crc16,
+                      (fns)crc16_lookup, (fns)crc16speed};
     size_t cc = sizeof(compares) / sizeof(*compares); /* compare count */
-    char *names[] = {
-        "crc64 (no table)", "crc64 (lookup table)", "crc64speed",
-        "crc16 (no table)", "crc16 (lookup table)", "crc16speed"
-    };
+    char *names[] = {"crc64 (no table)", "crc64 (lookup table)", "crc64speed",
+                     "crc16 (no table)", "crc16 (lookup table)", "crc16speed"};
 
     double size_mb = sz / 1024.0 / 1024.0;
     printf("Comparing CRCs against %0.2lf MB file...\n\n", size_mb);

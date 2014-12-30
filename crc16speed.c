@@ -35,12 +35,12 @@
  * We don't enable dual lookups by default because
  * each 8x256 lookup table is 4k. */
 #ifndef CRC16SPEED_DUAL
-static uint16_t crc16_table[8][256] = { { 0 } };
+static uint16_t crc16_table[8][256] = {{0}};
 static void *crc16_table_little = NULL, *crc16_table_big = NULL;
 static const bool dual = false;
 #else
-static uint16_t crc16_table_little[8][256] = { { 0 } };
-static uint16_t crc16_table_big[8][256] = { { 0 } };
+static uint16_t crc16_table_little[8][256] = {{0}};
+static uint16_t crc16_table_big[8][256] = {{0}};
 static void *crc16_table = NULL;
 static const bool dual = true;
 #endif
