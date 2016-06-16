@@ -28,8 +28,8 @@
 #ifndef CRCSPEED_H
 #define CRCSPEED_H
 
-#include <stdio.h>
 #include <inttypes.h>
+#include <stdio.h>
 
 typedef uint64_t (*crcfn64)(uint64_t, const void *, const uint64_t);
 typedef uint16_t (*crcfn16)(uint16_t, const void *, const uint64_t);

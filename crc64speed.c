@@ -111,6 +111,7 @@ static inline uint_fast64_t crc_reflect(uint_fast64_t data, size_t data_len) {
         data >>= 1;
         ret = (ret << 1) | (data & 0x01);
     }
+
     return ret;
 }
 
@@ -133,23 +134,29 @@ uint64_t crc64(uint_fast64_t crc, const void *in_data, const uint64_t len) {
             if (c & i) {
                 bit = !bit;
             }
+
             crc <<= 1;
             if (bit) {
                 crc ^= POLY;
             }
         }
+
         crc &= 0xffffffffffffffff;
     }
+
     crc = crc & 0xffffffffffffffff;
     return crc_reflect(crc, 64) ^ 0x0000000000000000;
 }
+
 /******************** END GENERATED PYCRC FUNCTIONS ********************/
 
 /* Only for testing; doesn't support DUAL */
 uint64_t crc64_lookup(uint64_t crc, const void *in_data, const uint64_t len) {
     const uint8_t *data = in_data;
-    for (size_t i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++) {
         crc = crc64_table[0][(uint8_t)crc ^ data[i]] ^ (crc >> 8);
+    }
+
     return crc;
 }
 
@@ -250,15 +257,19 @@ int crc64Test(int argc, char *argv[]) {
                 "occaecat cupidatat non proident, sunt in culpa qui officia "
                 "deserunt mollit anim id est laborum.";
     printf("[calcula]: c7794709e69683b3 == %016" PRIx64 "\n",
-           (uint64_t)crc64(0, li, sizeof li));
+           (uint64_t)crc64(0, li, sizeof(li)));
     printf("[lookupt]: c7794709e69683b3 == %016" PRIx64 "\n",
-           (uint64_t)crc64_lookup(0, li, sizeof li));
+           (uint64_t)crc64_lookup(0, li, sizeof(li)));
     printf("[64speed]: c7794709e69683b3 == %016" PRIx64 "\n",
-           (uint64_t)crc64speed(0, li, sizeof li));
+           (uint64_t)crc64speed(0, li, sizeof(li)));
     return 0;
 }
+
 #endif
 
 #ifdef REDIS_TEST_MAIN
-int main(int argc, char *argv[]) { return crc64Test(argc, argv); }
+int main(int argc, char *argv[]) {
+    return crc64Test(argc, argv);
+}
+
 #endif

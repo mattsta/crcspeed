@@ -75,20 +75,25 @@ uint16_t crc16(uint16_t crc, const void *in_data, uint64_t len) {
     const uint8_t *data = in_data;
     for (uint64_t i = 0; i < len; i++) {
         crc = crc ^ (data[i] << 8);
-        for (int j = 0; j < 8; j++)
-            if (crc & 0x8000)
+        for (int j = 0; j < 8; j++) {
+            if (crc & 0x8000) {
                 crc = (crc << 1) ^ POLY;
-            else
+            } else {
                 crc = (crc << 1);
+            }
+        }
     }
+
     return crc;
 }
 
 /* Only for testing; doesn't support DUAL */
 uint16_t crc16_lookup(uint16_t crc, const void *in_data, uint64_t len) {
     const uint8_t *data = in_data;
-    for (uint64_t i = 0; i < len; i++)
+    for (uint64_t i = 0; i < len; i++) {
         crc = (crc << 8) ^ crc16_table[0][((crc >> 8) ^ data[i]) & 0x00ff];
+    }
+
     return crc;
 }
 
@@ -190,15 +195,19 @@ int crc16Test(int argc, char *argv[]) {
                 "occaecat cupidatat non proident, sunt in culpa qui officia "
                 "deserunt mollit anim id est laborum.";
     printf("[calcula]: 4b20 == %04" PRIx64 "\n",
-           (uint64_t)crc16(0, li, sizeof li));
+           (uint64_t)crc16(0, li, sizeof(li)));
     printf("[lookupt]: 4b20 == %04" PRIx64 "\n",
-           (uint64_t)crc16_lookup(0, li, sizeof li));
+           (uint64_t)crc16_lookup(0, li, sizeof(li)));
     printf("[16speed]: 4b20 == %04" PRIx64 "\n",
-           (uint64_t)crc16speed(0, li, sizeof li));
+           (uint64_t)crc16speed(0, li, sizeof(li)));
     return 0;
 }
+
 #endif
 
 #ifdef REDIS_TEST_MAIN
-int main(int argc, char *argv[]) { return crc16Test(argc, argv); }
+int main(int argc, char *argv[]) {
+    return crc16Test(argc, argv);
+}
+
 #endif

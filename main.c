@@ -1,14 +1,14 @@
-#include <stdio.h>
+#include "crc16speed.h"
+#include "crc64speed.h"
 #include <fcntl.h>
-#include <unistd.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <inttypes.h>
-#include <stdlib.h>
-#include <string.h>
-#include "crc64speed.h"
-#include "crc16speed.h"
+#include <unistd.h>
 
 static long long ustime(void) {
     struct timeval tv;
@@ -67,17 +67,17 @@ int main(int argc, char *argv[]) {
 
         /* LOREM IPSUM */
         printf("[64calcu]: c7794709e69683b3 == %016" PRIx64 "\n",
-               (uint64_t)crc64(0, li, sizeof li));
+               (uint64_t)crc64(0, li, sizeof(li)));
         printf("[64looku]: c7794709e69683b3 == %016" PRIx64 "\n",
-               (uint64_t)crc64_lookup(0, li, sizeof li));
+               (uint64_t)crc64_lookup(0, li, sizeof(li)));
         printf("[64speed]: c7794709e69683b3 == %016" PRIx64 "\n",
-               (uint64_t)crc64speed(0, li, sizeof li));
+               (uint64_t)crc64speed(0, li, sizeof(li)));
         printf("[16calcu]: 4b20 == %04" PRIx64 "\n",
-               (uint64_t)crc16(0, li, sizeof li));
+               (uint64_t)crc16(0, li, sizeof(li)));
         printf("[16looku]: 4b20 == %04" PRIx64 "\n",
-               (uint64_t)crc16_lookup(0, li, sizeof li));
+               (uint64_t)crc16_lookup(0, li, sizeof(li)));
         printf("[16speed]: 4b20 == %04" PRIx64 "\n",
-               (uint64_t)crc16speed(0, li, sizeof li));
+               (uint64_t)crc16speed(0, li, sizeof(li)));
 
         return 0;
     }
@@ -89,6 +89,7 @@ int main(int argc, char *argv[]) {
         perror("Can't find file length");
         return 1;
     }
+
     off_t sz = ftello(fp);
     rewind(fp);
     char *contents = malloc(sz); /* potentially very big */
@@ -98,10 +99,11 @@ int main(int argc, char *argv[]) {
         perror("Could not read entire file");
         return 1;
     }
+
     fclose(fp);
 
-    fns compares[] = {crc64, crc64_lookup, crc64speed, (fns)crc16,
-                      (fns)crc16_lookup, (fns)crc16speed};
+    fns compares[] = {crc64,      crc64_lookup,      crc64speed,
+                      (fns)crc16, (fns)crc16_lookup, (fns)crc16speed};
     size_t cc = sizeof(compares) / sizeof(*compares); /* compare count */
     char *names[] = {"crc64 (no table)", "crc64 (lookup table)", "crc64speed",
                      "crc16 (no table)", "crc16 (lookup table)", "crc16speed"};
@@ -113,13 +115,14 @@ int main(int argc, char *argv[]) {
     uint64_t accum_result = 0;
     bool is16 = false; /* true when we are processing a CRC-16 */
     for (size_t i = 0; i < cc; i++) {
-        if (is16)
+        if (is16) {
             crc16speed_cache_table();
-        else
+        } else {
             crc64speed_cache_table();
+        }
 
         /* prime the code path with a dummy untimed call */
-        compares[i](0, li, sizeof li);
+        compares[i](0, li, sizeof(li));
 
         long long start = ustime();
         uint64_t start_c = rdtsc();
@@ -129,8 +132,9 @@ int main(int argc, char *argv[]) {
 
         /* Our test type returns 64 bits, but CRC16 only returns
          * 16 bits, so let's ignore any upper-bit garbage. */
-        if (is16)
+        if (is16) {
             result &= 0xffff;
+        }
 
         double total_time_seconds = (end - start) / 1e6;
         double speed = size_mb / total_time_seconds; /* MB per second */
@@ -158,6 +162,7 @@ int main(int argc, char *argv[]) {
         printf("\n");
         fflush(stdout);
     }
+
     free(contents);
 
     return error;

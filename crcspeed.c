@@ -65,6 +65,7 @@ void crcspeed16little_init(crcfn16 crcfn, uint16_t table[8][256]) {
         }
     }
 }
+
 /* Reverse the bytes in a 64-bit word. */
 static inline uint64_t rev8(uint64_t a) {
 #if defined(__GNUC__) || defined(__clang__)
@@ -85,17 +86,21 @@ static inline uint64_t rev8(uint64_t a) {
 void crcspeed64big_init(crcfn64 fn, uint64_t big_table[8][256]) {
     /* Create the little endian table then reverse all the entires. */
     crcspeed64little_init(fn, big_table);
-    for (int k = 0; k < 8; k++)
-        for (int n = 0; n < 256; n++)
+    for (int k = 0; k < 8; k++) {
+        for (int n = 0; n < 256; n++) {
             big_table[k][n] = rev8(big_table[k][n]);
+        }
+    }
 }
 
 void crcspeed16big_init(crcfn16 fn, uint16_t big_table[8][256]) {
     /* Create the little endian table then reverse all the entires. */
     crcspeed16little_init(fn, big_table);
-    for (int k = 0; k < 8; k++)
-        for (int n = 0; n < 256; n++)
+    for (int k = 0; k < 8; k++) {
+        for (int n = 0; n < 256; n++) {
             big_table[k][n] = rev8(big_table[k][n]);
+        }
+    }
 }
 
 /* Calculate a non-inverted CRC multiple bytes at a time on a little-endian
@@ -112,6 +117,7 @@ uint64_t crcspeed64little(uint64_t little_table[8][256], uint64_t crc,
         crc = little_table[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
         len--;
     }
+
     /* fast middle processing, 8 bytes (aligned!) per loop */
     while (len >= 8) {
         crc ^= *(uint64_t *)next;
@@ -126,11 +132,13 @@ uint64_t crcspeed64little(uint64_t little_table[8][256], uint64_t crc,
         next += 8;
         len -= 8;
     }
+
     /* process remaining bytes (can't be larger than 8) */
     while (len) {
         crc = little_table[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
         len--;
     }
+
     return crc;
 }
 
@@ -143,6 +151,7 @@ uint16_t crcspeed16little(uint16_t little_table[8][256], uint16_t crc,
         crc = little_table[0][((crc >> 8) ^ *next++) & 0xff] ^ (crc << 8);
         len--;
     }
+
     /* fast middle processing, 8 bytes (aligned!) per loop */
     while (len >= 8) {
         uint64_t n = *(uint64_t *)next;
@@ -157,11 +166,13 @@ uint16_t crcspeed16little(uint16_t little_table[8][256], uint16_t crc,
         next += 8;
         len -= 8;
     }
+
     /* process remaining bytes (can't be larger than 8) */
     while (len) {
         crc = little_table[0][((crc >> 8) ^ *next++) & 0xff] ^ (crc << 8);
         len--;
     }
+
     return crc;
 }
 
@@ -177,6 +188,7 @@ uint64_t crcspeed64big(uint64_t big_table[8][256], uint64_t crc, void *buf,
         crc = big_table[0][(crc >> 56) ^ *next++] ^ (crc << 8);
         len--;
     }
+
     while (len >= 8) {
         crc ^= *(uint64_t *)next;
         crc = big_table[0][crc & 0xff] ^
@@ -190,10 +202,12 @@ uint64_t crcspeed64big(uint64_t big_table[8][256], uint64_t crc, void *buf,
         next += 8;
         len -= 8;
     }
+
     while (len) {
         crc = big_table[0][(crc >> 56) ^ *next++] ^ (crc << 8);
         len--;
     }
+
     return rev8(crc);
 }
 
@@ -205,12 +219,13 @@ uint16_t crcspeed16big(uint16_t big_table[8][256], uint16_t crc_in, void *buf,
 
     crc = rev8(crc);
     while (len && ((uintptr_t)next & 7) != 0) {
-        crc = big_table[0][((crc >> (56-8)) ^ *next++) & 0xff] ^ (crc >> 8);
+        crc = big_table[0][((crc >> (56 - 8)) ^ *next++) & 0xff] ^ (crc >> 8);
         len--;
     }
+
     while (len >= 8) {
         uint64_t n = *(uint64_t *)next;
-        crc = big_table[0][(n & 0xff) ^ ((crc >> (56-8)) & 0xff)] ^
+        crc = big_table[0][(n & 0xff) ^ ((crc >> (56 - 8)) & 0xff)] ^
               big_table[1][((n >> 8) & 0xff) ^ (crc & 0xff)] ^
               big_table[2][(n >> 16) & 0xff] ^
               big_table[3][(n >> 24) & 0xff] ^
@@ -221,10 +236,12 @@ uint16_t crcspeed16big(uint16_t big_table[8][256], uint16_t crc_in, void *buf,
         next += 8;
         len -= 8;
     }
+
     while (len) {
-        crc = big_table[0][((crc >> (56-8)) ^ *next++) & 0xff] ^ (crc >> 8);
+        crc = big_table[0][((crc >> (56 - 8)) ^ *next++) & 0xff] ^ (crc >> 8);
         len--;
     }
+
     return rev8(crc);
 }
 
