@@ -107,15 +107,15 @@ int main(int argc, char *argv[]) {
     size_t cc = sizeof(compares) / sizeof(*compares); /* compare count */
     char *names[] = {"crc64 (no table)", "crc64 (lookup table)", "crc64speed",
                      "crc16 (no table)", "crc16 (lookup table)", "crc16speed"};
+    bool is16[] = { false, false, false, true, true, true };
 
     double size_mb = sz / 1024.0 / 1024.0;
     printf("Comparing CRCs against %0.2lf MB file...\n\n", size_mb);
 
     bool error = false;
     uint64_t accum_result = 0;
-    bool is16 = false; /* true when we are processing a CRC-16 */
     for (size_t i = 0; i < cc; i++) {
-        if (is16) {
+        if (is16[i]) {
             crc16speed_cache_table();
         } else {
             crc64speed_cache_table();
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
         /* Our test type returns 64 bits, but CRC16 only returns
          * 16 bits, so let's ignore any upper-bit garbage. */
-        if (is16) {
+        if (is16[i]) {
             result &= 0xffff;
         }
 
