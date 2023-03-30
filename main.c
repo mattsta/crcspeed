@@ -27,6 +27,15 @@ typedef uint64_t (*fns)(uint64_t, const void *, const uint64_t);
 extern off_t ftello(FILE *stream);
 #endif
 
+#if __aarch64__
+static inline uint64_t rdtsc() {
+    uint64_t val;
+    __sync_synchronize();
+    asm volatile("mrs %0, cntvct_el0" : "=r"(val));
+
+    return val;
+}
+#elif __x86_64__
 static inline uint64_t rdtsc() {
     unsigned int lo = 0, hi = 0;
 
@@ -36,6 +45,9 @@ static inline uint64_t rdtsc() {
     __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
     return ((uint64_t)hi << 32) | lo;
 }
+#else
+#error Unknown architecture? What are you running???
+#endif
 
 int main(int argc, char *argv[]) {
     crc64speed_init();

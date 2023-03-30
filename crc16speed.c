@@ -171,7 +171,7 @@ void crc16speed_cache_table(void) {
 }
 
 /* Test main */
-#if defined(REDIS_TEST) || defined(REDIS_TEST_MAIN)
+#if defined(CRCSPEED_TEST) || defined(CRCSPEED_TEST_MAIN)
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -205,7 +205,7 @@ int crc16Test(int argc, char *argv[]) {
 
 #endif
 
-#ifdef REDIS_TEST_MAIN
+#ifdef CRCSPEED_TEST_MAIN
 int main(int argc, char *argv[]) {
     return crc16Test(argc, argv);
 }

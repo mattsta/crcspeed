@@ -68,21 +68,36 @@ Benchmark
 ---------
 
 The Makefile builds three test excutables:
-  - `crc64speed-test` just returns check values for two input types across all
+  - `crc64speed` just returns check values for two input types across all
   three internal CRC process methods (bit-by-bit, byte-by-byte, 8-bytes-at-once).
-  - `crc16speed-test` returns check values for the same data, except limited to CRC16 results.
-  - `crcspeed-test` has two options:
+  - `crc16speed` returns check values for the same data, except limited to CRC16 results.
+  - `crcspeed` has two options:
     - no arguments: return check values for crc64 and crc16 at the same time.
     - one argument: filename of file to read into memory then run CRC tests against.
       - If CRC results do not match (for each CRC variant), the return value of
-      `crcspeed-test` is 1, otherwise 0 on success.
+      `crcspeed` is 1, otherwise 0 on success.
 
 ```haskell
-% make
-    CC crcspeed-test
-    CC crc64speed-test
-    CC crc16speed-test
-% ./crcspeed-test ~/Downloads/John\ Mayer\ -\ Live\ At\ Austin\ City\ Limits\ PBS\ -\ Full\ Concert-gcdUz12FkdQ.mp4 
+> mkdir build
+> cd build
+> cmake ..
+> make -j
+[ 18%] Building C object CMakeFiles/crcspeed.dir/crc16speed.c.o
+[ 27%] Building C object CMakeFiles/crcspeed.dir/crcspeed.c.o
+[ 36%] Building C object CMakeFiles/crcspeed.dir/crc64speed.c.o
+[ 54%] Building C object CMakeFiles/crc64speed.dir/crc64speed.c.o
+[ 54%] Building C object CMakeFiles/crc64speed.dir/crcspeed.c.o
+[ 54%] Building C object CMakeFiles/crc16speed.dir/crcspeed.c.o
+[ 63%] Building C object CMakeFiles/crc16speed.dir/crc16speed.c.o
+[ 72%] Building C object CMakeFiles/crcspeed.dir/main.c.o
+[ 81%] Linking C executable crc64speed
+[ 90%] Linking C executable crc16speed
+[100%] Linking C executable crcspeed
+[100%] Built target crc16speed
+[100%] Built target crc64speed
+[100%] Built target crcspeed
+
+> ./crcspeed ~/Downloads/John\ Mayer\ -\ Live\ At\ Austin\ City\ Limits\ PBS\ -\ Full\ Concert-gcdUz12FkdQ.mp4
 Comparing CRCs against 730.72 MB file...
 
 crc64 (no table)

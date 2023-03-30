@@ -237,7 +237,7 @@ uint64_t crc64speed_native(uint64_t crc, const void *s, const uint64_t l) {
 }
 
 /* Test main */
-#if defined(REDIS_TEST) || defined(REDIS_TEST_MAIN)
+#if defined(CRCSPEED_TEST) || defined(CRCSPEED_TEST_MAIN)
 #include <stdio.h>
 
 #define UNUSED(x) (void)(x)
@@ -270,7 +270,7 @@ int crc64Test(int argc, char *argv[]) {
 
 #endif
 
-#ifdef REDIS_TEST_MAIN
+#ifdef CRCSPEED_TEST_MAIN
 int main(int argc, char *argv[]) {
     return crc64Test(argc, argv);
 }
