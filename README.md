@@ -10,7 +10,10 @@ No original ideas, but original adaptations.  Lots of shoulder standing.
 This started out as a modified version of comment at http://stackoverflow.com/questions/20562546
 then was made more extensible.
 
-Features
+**NOTE**: You should not be using any CRC variant for new code anywhere. All new fast hashing code
+should use [well-designed multi-platform simd-aware libraries like `xxh3` and `xxh128`](https://github.com/Cyan4973/xxHash). Only use CRC in your code if you need to hack together adapters for existing poorly designed systems or if you find yourself time travelling back to the 1970s.
+
+Feature
 --------
 
   - CRC processing in 8-byte steps for CRC-64 (Jones) and CRC-16 (CCITT).
