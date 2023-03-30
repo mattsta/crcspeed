@@ -119,6 +119,7 @@ uint64_t crcspeed64little(uint64_t little_table[8][256], uint64_t crc,
     }
 
     /* fast middle processing, 8 bytes (aligned!) per loop */
+    /* clang-format off */
     while (len >= 8) {
         crc ^= *(uint64_t *)next;
         crc = little_table[7][crc & 0xff] ^
@@ -132,6 +133,7 @@ uint64_t crcspeed64little(uint64_t little_table[8][256], uint64_t crc,
         next += 8;
         len -= 8;
     }
+    /* clang-format on */
 
     /* process remaining bytes (can't be larger than 8) */
     while (len) {
@@ -153,6 +155,7 @@ uint16_t crcspeed16little(uint16_t little_table[8][256], uint16_t crc,
     }
 
     /* fast middle processing, 8 bytes (aligned!) per loop */
+    /* clang-format off */
     while (len >= 8) {
         uint64_t n = *(uint64_t *)next;
         crc = little_table[7][(n & 0xff) ^ ((crc >> 8) & 0xff)] ^
@@ -166,6 +169,7 @@ uint16_t crcspeed16little(uint16_t little_table[8][256], uint16_t crc,
         next += 8;
         len -= 8;
     }
+    /* clang-format on */
 
     /* process remaining bytes (can't be larger than 8) */
     while (len) {
@@ -189,6 +193,7 @@ uint64_t crcspeed64big(uint64_t big_table[8][256], uint64_t crc, void *buf,
         len--;
     }
 
+    /* clang-format off */
     while (len >= 8) {
         crc ^= *(uint64_t *)next;
         crc = big_table[0][crc & 0xff] ^
@@ -202,6 +207,7 @@ uint64_t crcspeed64big(uint64_t big_table[8][256], uint64_t crc, void *buf,
         next += 8;
         len -= 8;
     }
+    /* clang-format on */
 
     while (len) {
         crc = big_table[0][(crc >> 56) ^ *next++] ^ (crc << 8);
@@ -223,6 +229,7 @@ uint16_t crcspeed16big(uint16_t big_table[8][256], uint16_t crc_in, void *buf,
         len--;
     }
 
+    /* clang-format off */
     while (len >= 8) {
         uint64_t n = *(uint64_t *)next;
         crc = big_table[0][(n & 0xff) ^ ((crc >> (56 - 8)) & 0xff)] ^
@@ -236,6 +243,7 @@ uint16_t crcspeed16big(uint16_t big_table[8][256], uint16_t crc_in, void *buf,
         next += 8;
         len -= 8;
     }
+    /* clang-format on */
 
     while (len) {
         crc = big_table[0][((crc >> (56 - 8)) ^ *next++) & 0xff] ^ (crc >> 8);
