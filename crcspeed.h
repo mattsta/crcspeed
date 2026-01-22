@@ -28,6 +28,10 @@
 #ifndef CRCSPEED_H
 #define CRCSPEED_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <inttypes.h>
 #include <stdio.h>
 
@@ -57,4 +61,9 @@ uint16_t crcspeed16big(uint16_t table[8][256], uint16_t crc, void *buf,
                        size_t len);
 uint16_t crcspeed16native(uint16_t table[8][256], uint16_t crc, void *buf,
                           size_t len);
+
+#if defined(__cplusplus)
+}
+#endif
+
 #endif

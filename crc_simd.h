@@ -10,6 +10,10 @@
 #ifndef CRC_SIMD_H
 #define CRC_SIMD_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -24,5 +28,9 @@ uint64_t crc64_simd(uint64_t crc, const void *data, uint64_t len);
 /* CRC16 SIMD functions - use CRC-16-CCITT polynomial 0x1021 */
 void crc16_simd_init(void);
 uint16_t crc16_simd(uint16_t crc, const void *data, uint64_t len);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* CRC_SIMD_H */

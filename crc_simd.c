@@ -40,6 +40,12 @@
 #endif
 #endif
 
+#if defined(_MSC_VER)
+#define UNUSED 
+#else
+#define UNUSED __attribute__((unused))
+#endif
+
 static bool g_simd_checked = false;
 static bool g_simd_available = false;
 
@@ -150,7 +156,7 @@ static inline __m128i fold_128(__m128i acc, __m128i data, __m128i k1k2) {
 }
 
 /* Helper: byte-swap a 128-bit register (used for CRC16 non-reflected) */
-__attribute__((unused)) static inline __m128i bswap_128(__m128i x) {
+UNUSED static inline __m128i bswap_128(__m128i x) {
     const __m128i mask =
         _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
     return _mm_shuffle_epi8(x, mask);
@@ -161,7 +167,7 @@ __attribute__((unused)) static inline __m128i bswap_128(__m128i x) {
  * and the constants are positioned in the high 16 bits.
  * Note: Currently unused as we fall back to crc16speed for CRC16 SIMD on x86.
  */
-__attribute__((unused)) static inline __m128i
+UNUSED static inline __m128i
 fold_128_16(__m128i acc, __m128i data, __m128i k1k2) {
     /* For non-reflected CRC16:
      * - k1 is in high 64 bits, k2 in low 64 bits

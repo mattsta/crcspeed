@@ -1,5 +1,10 @@
 #ifndef CRC64SPEED_H
 #define CRC64SPEED_H
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include "crcspeed.h"
 #include "stdbool.h"
 
@@ -17,4 +22,9 @@ uint64_t crc64speed_big(uint64_t crc, const void *s, const uint64_t l);
 
 bool crc64speed_init_native(void);
 uint64_t crc64speed_native(uint64_t crc, const void *s, const uint64_t l);
+
+#if defined(__cplusplus)
+}
+#endif
+
 #endif
